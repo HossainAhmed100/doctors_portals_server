@@ -109,20 +109,33 @@ async function run() {
       res.send(result);
     });
 
+    app.get("/appointmentspecialty", async (req, res) => {
+      const result = await appointmentOptionsCollection
+        .find({})
+        .project({ name: 1 })
+        .toArray();
+      res.send(result);
+    });
+
     app.get("/users", async (req, res) => {
       const result = await usersCollection.find({}).toArray();
       res.send(result);
+    });
+
+    app.get("/users/admin", async (req, res) => {
+      const email = req.query.email;
+      const query = { email };
+      const user = await usersCollection.findOne(query);
+      res.send({ isAdmin: user?.role === "Admin" });
     });
 
     app.put("/users/admin/:id", verifyJWT, async (req, res) => {
       const decodedEmail = req.decoded.email;
       const query = { email: decodedEmail };
       const getUser = await usersCollection.findOne(query);
-      console.log(getUser);
       if (getUser?.role !== "Admin") {
         return res.status(403).send({ message: "Forbiddedn Access" });
       }
-
       const id = req.params.id;
       const role = req.body;
       const filter = { _id: ObjectId(id) };
