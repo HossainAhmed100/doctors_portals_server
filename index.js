@@ -47,6 +47,7 @@ async function run() {
       .db("doctorsPortal")
       .collection("bookings");
     const usersCollection = client.db("doctorsPortal").collection("users");
+    const doctorsCollection = client.db("doctorsPortal").collection("doctors");
 
     app.get("/appointmentOptions", async (req, res) => {
       const query = {};
@@ -92,6 +93,13 @@ async function run() {
       res.send(bookings);
     });
 
+    app.get("/bookings/:id", verifyJWT, async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const bookings = await bookingsCollection.findOne(query);
+      res.send(bookings);
+    });
+
     app.post("/booking", async (req, res) => {
       const booking = req.body;
 
@@ -106,6 +114,13 @@ async function run() {
         return res.send({ acknowledged: false, message });
       }
       const result = await bookingsCollection.insertOne(booking);
+      res.send(result);
+    });
+
+    app.delete("/bookings/:id", verifyJWT, async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const result = await bookingsCollection.deleteOne(query);
       res.send(result);
     });
 
@@ -165,6 +180,32 @@ async function run() {
     app.post("/users", async (req, res) => {
       const user = req.body;
       const result = await usersCollection.insertOne(user);
+      res.send(result);
+    });
+
+    app.delete("/users/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const result = await usersCollection.deleteOne(query);
+      res.send(result);
+    });
+
+    app.get("/doctors", async (req, res) => {
+      const query = {};
+      const result = await doctorsCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    app.post("/doctors", async (req, res) => {
+      const query = req.body;
+      const result = await doctorsCollection.insertOne(query);
+      res.send(result);
+    });
+
+    app.delete("/doctors/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const result = await doctorsCollection.deleteOne(query);
       res.send(result);
     });
   } finally {
