@@ -49,6 +49,9 @@ async function run() {
       .collection("bookings");
     const usersCollection = client.db("doctorsPortal").collection("users");
     const doctorsCollection = client.db("doctorsPortal").collection("doctors");
+    const paymentsCollection = client
+      .db("doctorsPortal")
+      .collection("payments");
 
     app.get("/appointmentOptions", async (req, res) => {
       const query = {};
@@ -220,6 +223,24 @@ async function run() {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
       const result = await doctorsCollection.deleteOne(query);
+      res.send(result);
+    });
+
+    app.post("/payments", async (req, res) => {
+      const payment = req.body;
+      const result = await paymentsCollection.insertOne(payment);
+      const id = payment.bookingId;
+      const filter = { _id: ObjectId(id) };
+      const updatedDoc = {
+        $set: {
+          transactionid: payment.transactionid,
+          paid: true,
+        },
+      };
+      const updatedResult = await bookingsCollection.updateOne(
+        filter,
+        updatedDoc
+      );
       res.send(result);
     });
   } finally {
